@@ -4,17 +4,31 @@ version '1.0'
 buildscript {
     ext {
         kotlin_version = '1.9.0'
-        stone_sdk_version = '4.10.2'
 
         localProp = new Properties()
         fileName = 'local.properties'
         if (project.rootProject.file(fileName).exists()) {
             localProp.load(new FileInputStream(rootProject.file(fileName)))
         }
+
+        // MCPARK — versao da SDK nativa da Stone, agora PARAMETRIZAVEL.
+        //
+        // Era fixa em 4.10.2 (12/09/2024). A Stone ja esta na 4.15.0
+        // (01/07/2026) e o SDK tem o erro SDK_VERSION_IS_OUTDATED, ou seja,
+        // versoes antigas podem ser RECUSADAS na ativacao/transacao.
+        // Deixar isto configuravel permite subir/voltar a versao sem novo fork:
+        //   - env STONE_SDK_VERSION, ou
+        //   - stoneSdkVersion=... em local.properties
+        stone_sdk_version = System.env.STONE_SDK_VERSION != null
+            ? System.env.STONE_SDK_VERSION
+            : (localProp["stoneSdkVersion"] ?: '4.15.0')
+
+        // MCPARK — o token INTERNAL nao tinha fallback: ausente, a URL do Maven
+        // virava literalmente ".../priv/null/...". Agora cai em vazio, igual ao
+        // token principal, e o erro fica compreensivel.
         packageCloudReadToken = System.env.PACKAGECLOUD_READ_TOKEN != null ? System.env.PACKAGECLOUD_READ_TOKEN  : localProp["packageCloudReadToken"] ?: ""
-        packageCloudReadTokenInternal = System.env.PACKAGECLOUD_READ_TOKEN_INTERNAL ?: localProp["packageCloudReadTokenInternal"]
-        println "packageCloudReadToken: $packageCloudReadToken"
-        println "packageCloudReadTokenInternal: $packageCloudReadTokenInternal"
+        packageCloudReadTokenInternal = System.env.PACKAGECLOUD_READ_TOKEN_INTERNAL != null ? System.env.PACKAGECLOUD_READ_TOKEN_INTERNAL : localProp["packageCloudReadTokenInternal"] ?: ""
+        println "stone_sdk_version: $stone_sdk_version"
     }
 
     repositories {
@@ -45,17 +59,22 @@ android {
 
     compileSdk = 35
 
-    lintOptions {
+    // MCPARK — `lintOptions` foi REMOVIDO no AGP 8; o app consumidor usa AGP
+    // 8.11. Trocado pelo bloco `lint`, valido de AGP 7.1 em diante.
+    lint {
         disable 'InvalidPackage'
     }
 
+    // MCPARK — Java 17. A SDK da Stone exige Java 17 a partir da v4.11.1
+    // (junto com Kotlin 1.9.0, Gradle 7.3.3 e AGP 7.2.0). Com Java 11 aqui, o
+    // modulo nao linka com as versoes atuais da SDK.
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     packagingOptions {
