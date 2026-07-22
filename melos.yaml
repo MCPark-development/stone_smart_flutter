@@ -1,15 +1,14 @@
-name: stone_smart_flutter
+name: stone_smart_mcpark
 
 packages:
-  - interface_stone_smart_flutter
-  - stone_smart_flutter
-  - stone_smart_flutter/example
+  - stone_smart_mcpark
+  - stone_smart_mcpark/example
 
 scripts:
   analyze:
     run: melos exec -- flutter analyze .
   format:
-    run: melos exec -- flutter format .
+    run: melos exec -- dart format .
 
 command:
   version:
@@ -18,4 +17,4 @@ command:
 
 sdk: ">=3.0.0 <4.0.0"
 
-repository: https://github.com/jhonathanqz/stone_smart_flutter
+repository: https://github.com/MCPark-development/stone_smart_flutter

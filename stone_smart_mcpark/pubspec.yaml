@@ -1,0 +1,32 @@
+name: stone_smart_mcpark
+description: >-
+  Ponte Flutter da MCPark para a SDK Android da Stone (POS/maquininha):
+  ativacao do pinpad, credito, debito, PIX, voucher, cancelamento, estorno e
+  impressao no terminal.
+version: 2.0.0
+publish_to: "none"
+repository: https://github.com/MCPark-development/stone_smart_flutter
+
+# Derivado de `stone_smart_flutter` + `interface_stone_smart_flutter`
+# (c) 2024 Jhonathan C. Queiroz, sob BSD 3-Clause — ver LICENSE e NOTICE.
+# Os dois pacotes foram unificados neste; ver NOTICE.md para as divergencias.
+
+environment:
+  sdk: ">=3.1.5 <4.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: br.com.mcpark.stone_smart
+        pluginClass: StoneSmartFlutterPlugin
