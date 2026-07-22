@@ -1,3 +1,10 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="br.com.mcpark.stone_smart">
+<!--
+  MCPARK: o atributo `package=` foi REMOVIDO.
+
+  A partir do AGP 8, declarar `package` no manifesto de uma biblioteca e ERRO de
+  build: "Setting the namespace via the package attribute in the source
+  AndroidManifest.xml is no longer supported". O app consumidor usa AGP 8.11.
+  O valor correto ja esta em `namespace` no android/build.gradle.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>

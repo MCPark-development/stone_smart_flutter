@@ -19,9 +19,19 @@ buildscript {
         // Deixar isto configuravel permite subir/voltar a versao sem novo fork:
         //   - env STONE_SDK_VERSION, ou
         //   - stoneSdkVersion=... em local.properties
-        stone_sdk_version = System.env.STONE_SDK_VERSION != null
-            ? System.env.STONE_SDK_VERSION
-            : (localProp["stoneSdkVersion"] ?: '4.15.0')
+        // Default 4.16.3: e a versao usada pelo DEMO OFICIAL da Stone
+        // (github.com/stone-payments/demo-sdk-android), portanto a unica em que
+        // se sabe que os SEIS artefatos de fabricante existem publicados juntos.
+        // A 4.15.0 e a ultima com changelog publico, mas basta um dos artefatos
+        // nao ter sido publicado nela para o build travar.
+        //
+        // Compara com trim(): variavel de ambiente VAZIA nao e null. Se o CI
+        // exportar STONE_SDK_VERSION sem valor (repo variable inexistente), o
+        // ternario antigo escolhia "" e a dependencia saia SEM versao
+        // ("br.com.stone:stone-sdk:"), com erro incompreensivel.
+        def envSdkVersion = System.env.STONE_SDK_VERSION?.trim()
+        def localSdkVersion = localProp["stoneSdkVersion"]?.toString()?.trim()
+        stone_sdk_version = envSdkVersion ?: (localSdkVersion ?: '4.16.3')
 
         // MCPARK — o token INTERNAL nao tinha fallback: ausente, a URL do Maven
         // virava literalmente ".../priv/null/...". Agora cai em vazio, igual ao
@@ -57,10 +67,18 @@ apply plugin: 'kotlin-android'
 android {
     namespace = "br.com.mcpark.stone_smart"
 
-    compileSdk = 35
+    // 36: a AAR da Stone 4.15+ pode declarar minCompileSdk 36 e o merge falha com
+    // "requires libraries and applications that depend on it to compile against
+    // version 36 or later". O app ja compila em 36 (flutter.compileSdkVersion),
+    // entao alinhar aqui e custo zero.
+    compileSdk = 36
 
-    // MCPARK — `lintOptions` foi REMOVIDO no AGP 8; o app consumidor usa AGP
-    // 8.11. Trocado pelo bloco `lint`, valido de AGP 7.1 em diante.
+    // MCPARK — `lint` e a forma atual (valida de AGP 7.1 em diante).
+    // CORRECAO DE REGISTRO: o commit que fez esta troca alegou que
+    // `lintOptions` teria sido REMOVIDO no AGP 8. Isso e FALSO — a auditoria
+    // verificou por javap que `LibraryExtension.getLintOptions()` continua
+    // existindo no AGP 8.11.1. A troca nao regride nada e moderniza, mas a
+    // justificativa original estava errada.
     lint {
         disable 'InvalidPackage'
     }
@@ -87,7 +105,10 @@ android {
     }
 
     defaultConfig {
-       minSdk = 22
+       // 24 (Android 7): alinhado ao app. Com 22, se a AAR da Stone declarar
+       // minSdk 24 o merge de manifesto FALHA ("uses-sdk:minSdkVersion 22
+       // cannot be smaller than version 24 declared in library").
+       minSdk = 24
     }
 }
 
