@@ -39,14 +39,15 @@ public class StoneSmart {
                 isDebugLogActive = isDebugLogParams;
                 this.payment = new PaymentsPresenter(this.mChannel, isDebugLogActive);
                 break;
+            // Consultas sincronas: respondem o proprio valor e encerram aqui.
             case PAYMENT_GET_SERIAL_NUMBER:
                 String serialNumber = this.payment.getPosSerialNumber();
                 result.success(serialNumber);
-                break;
+                return;
             case PAYMENT_GET_MANUFACTURE:
                 String posManufacture = this.payment.getPosManufacture();
                 result.success(posManufacture);
-                break;
+                return;
             case PAYMENT_CUSTOM_PRINTER:
                 String printerParams = call.argument("printerParams");
                 this.payment.customPrinter(printerParams, currentContext);
@@ -149,10 +150,31 @@ public class StoneSmart {
 
                     default:
                         result.notImplemented();
-                        break;
+                        return;
                 }
                 break;
         }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // CORRECAO MCPARK — o MethodChannel PRECISA ser respondido.
+        //
+        // Antes, todos os comandos "fire-and-forget" (ativacao do pinpad,
+        // pagamentos, abort, abortPIX, cancelTransaction, impressao...) caiam
+        // num `break;` que NUNCA tocava em `result`. Do lado Dart,
+        // `await channel.invokeMethod(...)` entao JAMAIS completava: a
+        // ativacao pendurava o app para sempre, sem timeout e sem saida, e o
+        // cancelamento travava a UI em "Cancelando...".
+        //
+        // Este `success(true)` confirma apenas o DESPACHO do comando. O
+        // desfecho real continua chegando pelos callbacks do handler
+        // (onFinishedResponse / onError / onAbortedSuccessfully) — a
+        // arquitetura orientada a evento nao muda. As duas consultas sincronas
+        // acima respondem o proprio valor e retornam antes daqui.
+        //
+        // `true` (e nao `null`) porque o lado Dart tipa a maioria destas
+        // chamadas como `Future<bool>` com `return await invokeMethod(...)`:
+        // um `null` estouraria erro de cast.
+        result.success(true);
     }
 
     public void dispose() {
