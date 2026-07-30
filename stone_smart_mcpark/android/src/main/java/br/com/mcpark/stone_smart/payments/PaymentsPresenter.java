@@ -7,14 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.flutter.plugin.common.MethodChannel;
-import io.reactivex.disposables.Disposable;
 import stone.utils.keys.StoneKeyType;
 
 public class PaymentsPresenter {
 
     private PaymentsUseCase mUseCase;
     private PaymentsFragment mFragment;
-    private Disposable mSubscribe;
     private Boolean hasAborted = false;
     private int countPassword = 0;
     private boolean isDebugLog = false;
@@ -128,9 +126,17 @@ public class PaymentsPresenter {
         return mUseCase.getPosManufacture();
     }
 
+    /**
+     * Chamado por StoneSmart.dispose(). Hoje nao ha nada a liberar aqui: o
+     * campo Disposable (RxJava) que este metodo checava nunca recebeu
+     * atribuicao em nenhum ponto do historico, nem no upstream — era codigo
+     * morto, e o RxJava so entrava no classpath transitivamente pela SDK da
+     * Stone 4.10.x. Com a 4.16.3 essa dependencia sumiu e o build quebrava em
+     * "package io.reactivex.disposables does not exist".
+     *
+     * Mantido como gancho: e o ponto de limpeza se o presenter passar a
+     * segurar recurso proprio.
+     */
     public void dispose() {
-        if (mSubscribe != null) {
-            mSubscribe.dispose();
-        }
     }
 }
